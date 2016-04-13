@@ -1497,6 +1497,85 @@ void rt_key_thread_entry(void* parameter)
 
 #define	EC11_XN_NUMS_VAL	90
 
+
+#if 1
+void ec11_check_handle(void)
+{  
+//   u8 ss_m;
+//按键中断**********************************************************
+	static rt_tick_t ec11cnt = 0;
+		rt_tick_t ec11cnt_cru=0;
+
+		
+	static rt_uint8_t pulse_state_bak = 0;
+	
+while(1)
+{
+	
+	if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7) == 1))   //第一次中断，并且A相是下降沿
+	{
+		if(pulse_state_bak == 0)
+			pulse_state_bak = 7;
+		else if(pulse_state_bak == 0x08)
+			flag = 1;
+		else
+		{
+			pulse_state_bak = 0;
+			flag = 0;
+		}
+
+		if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8) == 0)) 
+		{
+			if(pulse_state_bak == 0)
+						pulse_state_bak = 0x08;
+			else if(pulse_state_bak == 0x07)
+						flag = 2;
+			else
+			{
+				pulse_state_bak = 0;
+				flag = 0;
+			}
+		}
+		else if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8) == 1)) 
+		{
+			if(pulse_state_bak == 0)
+					pulse_state_bak = 0x88;
+			else if(pulse_state_bak == 0x07)
+					flag = 1;
+			else
+			{
+				pulse_state_bak = 0;
+				flag = 0;
+			}
+
+
+		}
+		
+	}
+	
+		
+	if(flag==1)
+	{
+		--ec11_power_m;
+		flag = 0;
+		int_nu = 0;
+
+	}
+	else if(flag==2)
+	{
+
+		++ec11_power_m;
+		flag = 0;
+		int_nu = 0;
+
+	}
+
+	rt_thread_delay(RT_TICK_PER_SECOND/100);
+}
+
+}
+
+#else
 void ec11_check_handle(void)
 {  
 //   u8 ss_m;
@@ -1586,7 +1665,7 @@ while(1)
 
 }
 
-
+#endif
 
 void rt_ec11_thread_entry(void* parameter)
 {
