@@ -62,6 +62,10 @@ u16 ec11_time=0;      //时间，分最大180分（3小时）
 u16 ec11_time_m=100;          //旋转编码器增量
 
 
+u8 Comparing = 0;
+u16 PulAPol,PulBPol,PulState,PulLastState;
+s32 BMQCounterTotal=0;
+u8 RunRight = 0xff;
 
 
 void EXTI9_5_int(u8 mode)
@@ -89,129 +93,63 @@ else
 #if 1
 void ec11_key_interrupt(void)
 {  
-//   u8 ss_m;
-//按键中断**********************************************************
-	static rt_tick_t ec11cnt = 0;
-		rt_tick_t ec11cnt_cru=0;
-
 		
-	static rt_uint8_t pulse_state_bak = 0;
 	
-	
-	if((EXTI_GetITStatus(EXTI_Line7) != RESET))
+	if((EXTI_GetITStatus(EXTI_Line7) != RESET) || (EXTI_GetITStatus(EXTI_Line8) != RESET))
 	{
 
-		if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7) == 0))   //第一次中断，并且A相是下降沿
-		{
-			if(pulse_state_bak == 0)
-				pulse_state_bak = 7;
-			else if(pulse_state_bak == 0x08)
-			{
-				pulse_state_bak = 0;
-	
-				flag = 1;
-			}
-			else
-			{
-				pulse_state_bak = 0x07;
-				flag = 0;
-				--ec11_power_m;
-			}
+			{                                                              
+	    //TCNT3=0xfc41;                                               // 125uS
+	    if(!Comparing) 
+		{                                            
+	       PulAPol = GPIO_ReadInputData(GPIOB);//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+	       PulAPol&=0x0080; 
+		   PulLastState&=0x0180; 
+		   PulAPol>>=7;    
+		}                                                   
 
-			//pp7l++;
-		}
-		else if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7))) 
-		{
-	
-			if(pulse_state_bak == 0)
-					pulse_state_bak = 0x77;
-			else if(pulse_state_bak == 0x88)
-			{
-				flag = 1;
-				pulse_state_bak = 0;
-			}
-			else
-			{
-				pulse_state_bak = 0x77;
-				flag = 0;
-				--ec11_power_m;
-			}
-	
-			//pp7h++;
-		}
-		
-
-	/* Clear the  EXTI line 8 pending bit */
-		EXTI_ClearITPendingBit(EXTI_Line7);
-	}
-
-    if((EXTI_GetITStatus(EXTI_Line8) != RESET))
-	{
-
-		if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8) == 0)) 
-		{
-			if(pulse_state_bak == 0)
-						pulse_state_bak = 0x08;
-			else if(pulse_state_bak == 0x07)
-			{
-				flag = 2;
-				pulse_state_bak = 0;
-			}
-			else
-			{
-				pulse_state_bak = 0x08;
-				flag = 0;
-				++ec11_power_m;
-			}
-		}
-		else if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8))) 
-		{
-			if(pulse_state_bak == 0)
-					pulse_state_bak = 0x88;
-			else if(pulse_state_bak == 0x77)
-			{
-				flag = 2;
-				pulse_state_bak = 0;
-
+		if(Comparing)                                                         
+		{                                                                    
+			PulBPol=GPIO_ReadInputData(GPIOB);                                                     
+			PulState=PulBPol;                                                
+			PulState&=0x0180;                                                   
+			PulBPol&=0x0100;                                                   
+			PulBPol>>=8;                                                      
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight=1; BMQCounterTotal--;
 				}
-			else
-			{
-				pulse_state_bak = 0x88;
-				flag = 0;
-				++ec11_power_m;
-			}
-
-
-		}
-	
-	/* Clear the  EXTI line 8 pending bit */
-		EXTI_ClearITPendingBit(EXTI_Line8);
+				else 
+				{ 
+					RunRight=0; BMQCounterTotal++; 
+				} 
+				Comparing=0;  
+			}  
+		}                                                                    
+	    if(!Comparing) 
+		{                                                    
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x0080; 
+			PulLastState&=0x0180; 
+			PulAPol>>=7;      
+		}                                                     
 	}
-	
-	
-
-	
-
 		
-	if(flag==1)
-	{
-		--ec11_power_m;
-		flag = 0;
-		int_nu = 0;
-		pulse_state_bak = 0;
 
-	}
-	else if(flag==2)
-	{
-		pulse_state_bak = 0;
-		++ec11_power_m;
-		flag = 0;
-		int_nu = 0;
-
+	/* Clear the  EXTI line 8 pending bit */
+		if((EXTI_GetITStatus(EXTI_Line8) != RESET))
+			EXTI_ClearITPendingBit(EXTI_Line8);
+		else
+			EXTI_ClearITPendingBit(EXTI_Line7);
 	}
 
-
-
+	
 }
 
 #else
@@ -285,6 +223,7 @@ void EXTI9_5_Config(void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
+#if 1
   /* Enable AFIO clock */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
   /* Connect EXTI9 Line to PB.09 pin */
@@ -308,7 +247,7 @@ void EXTI9_5_Config(void)
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//DISABLE;//ENABLE;
 
   NVIC_Init(&NVIC_InitStructure);
-
+#endif
 }
 
 
@@ -1667,6 +1606,83 @@ while(1)
 
 #endif
 
+#if 1
+void rt_ec11_thread_entry(void* parameter)
+{
+
+	u16 k;
+	
+    while(1)
+	{
+		k = key2_press_check();
+
+		if(1)
+		{
+			while(1)
+			{
+
+				if(BMQCounterTotal > 1)  //有旋转编码，且时间闪烁
+				{
+					//ec11_power_m=100;
+					pelcod_open_close_packet_send(0);
+
+				}
+
+				if(BMQCounterTotal < -1)  //有旋转编码，且时间闪烁
+				{
+					//ec11_power_m=100;
+					pelcod_open_close_packet_send(1);
+
+				}
+				
+
+				rt_thread_delay(600);
+			}
+
+		}
+		else
+		{
+			if(ec11_power_m > 1)  //有旋转编码，且时间闪烁
+				{
+					//ec11_power_m=100;
+					//EXTI9_5_int(0);
+					pelcod_open_close_packet_send(0);
+					ec11_power_m = 0;
+					rt_thread_delay(50);
+					pelcod_stop_packet_send();
+
+					//EXTI9_5_int(1);
+				}
+
+				if(ec11_power_m < -1)  //有旋转编码，且时间闪烁
+				{
+					//ec11_power_m=100;
+					//EXTI9_5_int(0);
+					pelcod_open_close_packet_send(1);
+					ec11_power_m = 0;
+					rt_thread_delay(50);
+					pelcod_stop_packet_send();
+					//EXTI9_5_int(1);
+				}
+				
+		}
+
+		k = key_sw22_check();
+		if(k==1)
+		{
+			pelcod_open_close_packet_send(0);
+		}
+		else if(k==0x10)
+			{
+
+		pelcod_stop_packet_send();
+
+		}
+		rt_thread_delay(40);
+    }
+}
+
+#else
 void rt_ec11_thread_entry(void* parameter)
 {
 
@@ -1747,6 +1763,7 @@ void rt_ec11_thread_entry(void* parameter)
 		rt_thread_delay(40);
     }
 }
+#endif
 
 u8 iris_set_ok=1;
 u8 cam_filter_set_ok = 1;
@@ -1784,6 +1801,66 @@ void rt_blink_thread_entry(void* parameter)
 
 }
 
+
+
+
+static rt_timer_t timer1;  
+static rt_uint8_t count;  
+//////////22222222222222
+
+void ec11_ISR(void)                                       
+{                                                              
+    //TCNT3=0xfc41;                                               // 125uS
+    if(!Comparing) 
+	{                                            
+       PulAPol = GPIO_ReadInputData(GPIOB);//PulAPol=PINE; 
+	   PulLastState=PulAPol; 
+	   Comparing++;   
+       PulAPol&=0x0080; 
+	   PulLastState&=0x0180; 
+	   PulAPol>>=7;    
+	}                                                   
+
+	if(Comparing)                                                         
+	{                                                                    
+		PulBPol=GPIO_ReadInputData(GPIOB);                                                     
+		PulState=PulBPol;                                                
+		PulState&=0x0180;                                                   
+		PulBPol&=0x0100;                                                   
+		PulBPol>>=8;                                                      
+		if(PulState!=PulLastState) 
+		{ 
+			if(PulBPol==PulAPol) 
+			{ 
+				RunRight=1; BMQCounterTotal--;
+			}
+			else 
+			{ 
+				RunRight=0; BMQCounterTotal++; 
+			} 
+			Comparing=0;  
+		}  
+	}                                                                    
+    if(!Comparing) 
+	{                                                    
+		PulAPol=PulState; 
+		PulLastState=PulAPol; 
+		Comparing++; 
+		PulAPol&=0x0080; 
+		PulLastState&=0x0180; 
+		PulAPol>>=7;      
+	}                                                     
+}    
+
+
+static void timeout1(void* parameter)  
+{  
+
+	ec11_ISR();
+
+} 
+
+
 int rt_key_ctl_init(void)
 {
 
@@ -1809,6 +1886,17 @@ int rt_key_ctl_init(void)
     //                               1024, 10, 5);
     //if (init_thread != RT_NULL)
     //    rt_thread_startup(init_thread);
+
+
+	//timer1 = rt_timer_create("timer1",  
+ //       timeout1,  
+ //       RT_NULL,  
+ //       5,  
+ //       RT_TIMER_FLAG_PERIODIC);  
+ //   if (timer1 != RT_NULL)  
+ //       rt_timer_start(timer1); 
+
+
 	
     return 0;
 }
