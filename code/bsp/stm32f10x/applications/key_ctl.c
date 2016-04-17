@@ -94,7 +94,9 @@ else
 void ec11_key_interrupt(void)
 {  
 		
-	
+/* enter interrupt */
+    rt_interrupt_enter();
+
 	if((EXTI_GetITStatus(EXTI_Line7) != RESET) || (EXTI_GetITStatus(EXTI_Line8) != RESET))
 	{
 
@@ -149,7 +151,8 @@ void ec11_key_interrupt(void)
 			EXTI_ClearITPendingBit(EXTI_Line7);
 	}
 
-	
+/* leave interrupt */
+    rt_interrupt_leave();	
 }
 
 #else
@@ -237,8 +240,8 @@ void EXTI9_5_Config(void)
   EXTI_InitStructure.EXTI_LineCmd = ENABLE;
   EXTI_Init(&EXTI_InitStructure);
  
- EXTI_InitStructure.EXTI_Line = EXTI_Line8;
-  EXTI_Init(&EXTI_InitStructure);
+ //EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+ // EXTI_Init(&EXTI_InitStructure);
 
   /* Enable and set EXTI9_5 Interrupt to the lowest priority */
   NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
@@ -256,12 +259,15 @@ void EXTI9_5_Config(void)
 void key_2_pin_init(void)
 {
 
-	GPIO_InitTypeDef GPIOD_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
 	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
 
-	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_2;
-	GPIO_Init(GPIOD, &GPIOD_InitStructure);	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	
+	GPIO_Init(GPIOD, &GPIO_InitStructure);	
 
 	EXTI9_5_Config();
 }
@@ -1392,10 +1398,6 @@ void rt_key_thread_entry(void* parameter)
 
 	u16 k;
 
-	key_pin_init();
-	joystick_ADC_Init();
-	
-	rt_thread_delay(200);
 	
     while(1)
 	{
@@ -1606,6 +1608,24 @@ while(1)
 
 #endif
 
+u8 ec11_mid_key_state = 0xff;////0,press; 1,no press
+
+
+void rt_ec11_mid_key_thread_entry(void* parameter)
+{
+
+	u16 k;
+	
+    while(1)
+	{
+		ec11_mid_key_state = key2_press_check();
+
+		rt_thread_delay(40);
+    }
+}
+
+
+
 #if 1
 void rt_ec11_thread_entry(void* parameter)
 {
@@ -1615,8 +1635,7 @@ void rt_ec11_thread_entry(void* parameter)
     while(1)
 	{
 		k = key2_press_check();
-
-		if(1)
+		if(k)
 		{
 			while(1)
 			{
@@ -1867,6 +1886,11 @@ int rt_key_ctl_init(void)
 	
     rt_thread_t init_thread;
 
+	key_pin_init();
+	joystick_ADC_Init();
+	
+	rt_thread_delay(200);
+
 
     init_thread = rt_thread_create("key",
                                    rt_key_thread_entry, RT_NULL,
@@ -1876,10 +1900,16 @@ int rt_key_ctl_init(void)
 
 	init_thread = rt_thread_create("ec11",
                                    rt_ec11_thread_entry, RT_NULL,
-                                   1024, 10, 5);
+                                   512, 10, 5);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 
+
+	//init_thread = rt_thread_create("ec11key",
+ //                                  rt_ec11_mid_key_thread_entry, RT_NULL,
+ //                                  256, 10, 5);
+ //   if (init_thread != RT_NULL)
+ //       rt_thread_startup(init_thread);
 	
     //init_thread = rt_thread_create("blink",
     //                               rt_blink_thread_entry, RT_NULL,
