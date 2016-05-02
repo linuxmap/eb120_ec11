@@ -148,8 +148,42 @@ void EXTI4_IRQHandler(void)
   * @}
   */
 
-
+extern void ec11_focus_key_interrupt(void);
+extern void ec11_zoom_key_interrupt(void);
 extern void ec11_key_interrupt(void);
+
+
+
+void EXTI2_IRQHandler(void)
+{
+	static u8 key_pb78_time=0;
+	
+    /* enter interrupt */
+    rt_interrupt_enter();
+	
+
+	ec11_focus_key_interrupt();  
+  
+    /* leave interrupt */
+    rt_interrupt_leave();
+
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+	static u8 key_pb78_time=0;
+	
+    /* enter interrupt */
+    rt_interrupt_enter();
+	
+
+	ec11_zoom_key_interrupt();  
+  
+    /* leave interrupt */
+    rt_interrupt_leave();
+
+}
+
 
 /**
   * @brief  This function handles External lines 9 to 5 interrupt request.

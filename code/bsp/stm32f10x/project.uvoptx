@@ -138,11 +138,6 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
-          <Key>DLGUARM</Key>
-          <Name></Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
           <Key>JL2CM3</Key>
           <Name>-U59106098 -O111 -S8 -ZTIFSpeedSel50000 -A0 -C0 -JU1 -JI127.0.0.1 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(1BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -TB1 -TFE0 -FO31 -FD20000000 -FC1000 -FN1 -FF0STM32F10x_512.FLM -FS08000000 -FL080000 -FP0($$Device:STM32F103RC$Flash\STM32F10x_512.FLM)</Name>
         </SetRegEntry>
@@ -193,6 +188,38 @@
           <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\eb120\applications/key_ctl.c\295</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>1658</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134257340</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\eb120\applications/key_ctl.c\1658</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>1713</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134257490</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\eb120\applications/key_ctl.c\1713</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -1064,7 +1091,7 @@
 
   <Group>
     <GroupName>DeviceDrivers</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

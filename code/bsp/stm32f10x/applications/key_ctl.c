@@ -9,6 +9,7 @@
 #include "osd_menu.h"
 #include "key_ctl.h"
 
+#include <stdlib.h>
 
 #define	KEY_PORT1		GPIOA
 #define	KEY_PORT2		GPIOB
@@ -62,10 +63,14 @@ u16 ec11_time=0;      //时间，分最大180分（3小时）
 u16 ec11_time_m=100;          //旋转编码器增量
 
 
-u8 Comparing = 0;
-u16 PulAPol,PulBPol,PulState,PulLastState;
 s32 BMQCounterTotal=0;
 u8 RunRight = 0xff;
+
+s32 BMQCounterTotal_zoom=0;
+u8 RunRight_zoom = 0xff;
+
+s32 BMQCounterTotal_focus=0;
+u8 RunRight_focus = 0xff;
 
 
 void EXTI9_5_int(u8 mode)
@@ -87,47 +92,44 @@ else
 
 }
 
-//u16 pp7l=0,pp7h=0;
 
 
-#if 1
-void ec11_key_interrupt(void)
+void ec11_focus_key_interrupt(void)
 {  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
 		
-/* enter interrupt */
-    rt_interrupt_enter();
-
-	if((EXTI_GetITStatus(EXTI_Line7) != RESET) || (EXTI_GetITStatus(EXTI_Line8) != RESET))
+	if((EXTI_GetITStatus(EXTI_Line2) != RESET))
 	{
 
 			{                                                              
 	    //TCNT3=0xfc41;                                               // 125uS
 	    if(!Comparing) 
 		{                                            
-	       PulAPol = GPIO_ReadInputData(GPIOB);//PulAPol=PINE; 
+	       PulAPol = GPIO_ReadInputData(GPIOC);//PulAPol=PINE; 
 		   PulLastState=PulAPol; 
 		   Comparing++;   
-	       PulAPol&=0x0080; 
-		   PulLastState&=0x0180; 
-		   PulAPol>>=7;    
+	       PulAPol&=0x0004; 
+		   PulLastState&=0x000C; 
+		   PulAPol>>=2;    
 		}                                                   
 
 		if(Comparing)                                                         
 		{                                                                    
-			PulBPol=GPIO_ReadInputData(GPIOB);                                                     
+			PulBPol=GPIO_ReadInputData(GPIOC);                                                     
 			PulState=PulBPol;                                                
-			PulState&=0x0180;                                                   
-			PulBPol&=0x0100;                                                   
-			PulBPol>>=8;                                                      
+			PulState&=0x000C;                                                   
+			PulBPol&=0x0008;                                                   
+			PulBPol>>=3;                                                      
 			if(PulState!=PulLastState) 
 			{ 
 				if(PulBPol==PulAPol) 
 				{ 
-					RunRight=1; BMQCounterTotal--;
+					RunRight_focus=1; BMQCounterTotal_focus--;
 				}
 				else 
 				{ 
-					RunRight=0; BMQCounterTotal++; 
+					RunRight_focus=0; BMQCounterTotal_focus++; 
 				} 
 				Comparing=0;  
 			}  
@@ -145,66 +147,143 @@ void ec11_key_interrupt(void)
 		
 
 	/* Clear the  EXTI line 8 pending bit */
+		if((EXTI_GetITStatus(EXTI_Line2) != RESET))
+			EXTI_ClearITPendingBit(EXTI_Line2);
+		else
+			EXTI_ClearITPendingBit(EXTI_Line3);
+	}
+
+}
+
+
+void ec11_zoom_key_interrupt(void)
+{  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
+		
+	if((EXTI_GetITStatus(EXTI_Line14) != RESET))
+	{
+
+			{                                                              
+	    //TCNT3=0xfc41;                                               // 125uS
+	    if(!Comparing) 
+		{                                            
+	       PulAPol = GPIO_ReadInputData(GPIOC);//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+	       PulAPol&=0x4000; 
+		   PulLastState&=0xC000; 
+		   PulAPol>>=14;    
+		}                                                   
+
+		if(Comparing)                                                         
+		{                                                                    
+			PulBPol=GPIO_ReadInputData(GPIOC);                                                     
+			PulState=PulBPol;                                                
+			PulState&=0xC000;                                                   
+			PulBPol&=0x8000;                                                   
+			PulBPol>>=15;                                                      
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight_zoom=1; BMQCounterTotal_zoom--;
+				}
+				else 
+				{ 
+					RunRight_zoom=0; BMQCounterTotal_zoom++; 
+				} 
+				Comparing=0;  
+			}  
+		}                                                                    
+	    if(!Comparing) 
+		{                                                    
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x0080; 
+			PulLastState&=0x0180; 
+			PulAPol>>=7;      
+		}                                                     
+	}
+		
+
+	/* Clear the  EXTI line 8 pending bit */
+		if((EXTI_GetITStatus(EXTI_Line14) != RESET))
+			EXTI_ClearITPendingBit(EXTI_Line14);
+		else
+			EXTI_ClearITPendingBit(EXTI_Line15);
+	}
+
+}
+
+
+
+void ec11_key_interrupt(void)
+{  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
+		
+	if((EXTI_GetITStatus(EXTI_Line7) != RESET) || (EXTI_GetITStatus(EXTI_Line8) != RESET))
+	{
+
+			{															   
+		//TCNT3=0xfc41; 											  // 125uS
+		if(!Comparing) 
+		{											 
+		   PulAPol = GPIO_ReadInputData(GPIOB);//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+		   PulAPol&=0x0080; 
+		   PulLastState&=0x0180; 
+		   PulAPol>>=7;    
+		}													
+
+		if(Comparing)														  
+		{																	 
+			PulBPol=GPIO_ReadInputData(GPIOB);													   
+			PulState=PulBPol;												 
+			PulState&=0x0180;													
+			PulBPol&=0x0100;												   
+			PulBPol>>=8;													  
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight=1; BMQCounterTotal--;
+				}
+				else 
+				{ 
+					RunRight=0; BMQCounterTotal++; 
+				} 
+				Comparing=0;  
+			}  
+		}																	 
+		if(!Comparing) 
+		{													 
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x0080; 
+			PulLastState&=0x0180; 
+			PulAPol>>=7;	  
+		}													  
+	}
+		
+
+	/* Clear the  EXTI line 8 pending bit */
 		if((EXTI_GetITStatus(EXTI_Line8) != RESET))
 			EXTI_ClearITPendingBit(EXTI_Line8);
 		else
 			EXTI_ClearITPendingBit(EXTI_Line7);
 	}
 
-/* leave interrupt */
-    rt_interrupt_leave();	
 }
 
-#else
-void ec11_key_interrupt(void)
-{  
-//   u8 ss_m;
-//按键中断**********************************************************
-	static rt_tick_t ec11cnt = 0;
-		rt_tick_t ec11cnt_cru=0;
-
-		
-	static rt_uint8_t pulse_state_bak = 0;
-	
-	
-	if((EXTI_GetITStatus(EXTI_Line7) != RESET))
-	{
-
-		if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7) == 0))   //第一次中断，并且A相是下降沿
-		{
-
-			pp7l++;
-		}
-		else if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7))) 
-		{
-	
-
-			pp7h++;
-		}
-		
-
-	/* Clear the  EXTI line 8 pending bit */
-		EXTI_ClearITPendingBit(EXTI_Line7);
-	}
-
-}
-#endif
 
 
 
-void exti9_5_int_enable(FunctionalState cmd)
-{
-	NVIC_InitTypeDef   NVIC_InitStructure;
 
-  /* Enable and set EXTI9_5 Interrupt to the lowest priority */
-  NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = cmd;
-
-  NVIC_Init(&NVIC_InitStructure);
-
-}
 
 /**
   * @brief  Configure PB.09 or PG.08 in interrupt mode
@@ -272,6 +351,105 @@ void key_2_pin_init(void)
 	EXTI9_5_Config();
 }
 
+
+//旋钮 2
+void ec11_key_zoom_pin_init(void)
+{
+
+	GPIO_InitTypeDef GPIO_InitStructure;
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	
+	GPIO_Init(GPIOC, &GPIO_InitStructure);	
+
+
+
+
+#if 1
+	EXTI_InitTypeDef	 EXTI_InitStructure;
+	NVIC_InitTypeDef	 NVIC_InitStructure;
+
+	/* Enable AFIO clock */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	/* Connect EXTI9 Line to PB.09 pin */
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
+
+	/* Configure EXTI9 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	/* Enable and set EXTI9_5 Interrupt to the lowest priority */
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//DISABLE;//ENABLE;
+
+	NVIC_Init(&NVIC_InitStructure);
+#endif
+
+
+
+}
+
+
+//旋钮 3
+void ec11_key_focus_pin_init(void)
+{
+
+	GPIO_InitTypeDef GPIO_InitStructure;
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);	
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);	
+
+
+
+#if 1
+	EXTI_InitTypeDef	 EXTI_InitStructure;
+	NVIC_InitTypeDef	 NVIC_InitStructure;
+
+	/* Enable AFIO clock */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	/* Connect EXTI9 Line to PB.09 pin */
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource2);
+
+	/* Configure EXTI9 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line2;
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	/* Enable and set EXTI9_5 Interrupt to the lowest priority */
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//DISABLE;//ENABLE;
+
+	NVIC_Init(&NVIC_InitStructure);
+#endif
+
+
+
+
+}
+
+
+
 u8 key_pb78_state = 0;
 
 
@@ -303,39 +481,35 @@ u8 key2_press_check(void)
 
 
 //0,press; 1,no press
-u8 key_sw22_check(void)
+u8 key2_focus_press_check(void)
 {
-	static u8 key_sw22_pre=0;
-	
-	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3) == 0)
+	if(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2) == 0)
 	{
-		rt_thread_delay(10);
+		rt_thread_delay(20);
 
-			if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3) == 0)
-			{
-				key_sw22_pre = 1;
-				return key_sw22_pre;
-
-			}
+			if(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2) == 0)
+				return 0;
 	}
-	else
-	{
-		if(key_sw22_pre == 1)
-		{
-			key_sw22_pre = 0x10;
-			return key_sw22_pre;
-		}
-		else
-			{
-			key_sw22_pre = 0;
 
-		}
-	}
-	
-
-	
-	return 0;
+	return 1;
 }
+
+
+//0,press; 1,no press
+u8 key2_zoom_press_check(void)
+{
+	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
+	{
+		rt_thread_delay(20);
+
+			if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
+				return 0;
+	}
+
+	return 1;
+}
+
+
 
 #define ADC_CHN_M 4 //为2个通道 0,1
 #define ADC_CHN_N (ADC_CHN_M*16) //每通道采16次
@@ -826,6 +1000,8 @@ void key_pin_init(void)
 	GPIO_Init(KEY_PORT3, &GPIOD_InitStructure);	
 
 	key_2_pin_init();
+	ec11_key_zoom_pin_init();
+	ec11_key_focus_pin_init();
 }
 
 u16 key_pre = 0;
@@ -1625,78 +1801,281 @@ void rt_ec11_mid_key_thread_entry(void* parameter)
 }
 
 
+#define	CTL_STEPS_BASE		3
+
+
+void rt_ec11_focus_thread_entry(void* parameter)
+{
+
+	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
+	
+    while(1)
+	{
+		k = key2_focus_press_check();
+		if(k)
+		{
+			//while(1)
+			{
+
+				
+				if(BMQCounterTotal_focus!= 0)  //
+				{
+					ec11_counter_pre = BMQCounterTotal_zoom;
+					
+					rt_thread_delay(300);
+
+					s32 result;
+					
+					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+
+					ec11_counter_bak = BMQCounterTotal_zoom;
+					BMQCounterTotal_zoom = 0;
+					result = (result/CTL_STEPS_BASE)+1;
+					
+					for(s32 i=0;i<result;i++)
+					{
+						if(ec11_counter_bak > 0)
+						{
+							pelcod_zf_packet_send(PD_FOCUS_FAR_CMD,result);
+						}
+						else
+						{
+							pelcod_zf_packet_send(PD_FOCUS_NEAR_CMD,result);
+
+						}
+						rt_thread_delay(60);
+					}
+
+					pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				}
+
+			}
+
+		}
+		else
+		{
+			
+			if(BMQCounterTotal_focus != 0)  //
+			{
+					ec11_counter_pre = BMQCounterTotal_zoom;
+					
+					rt_thread_delay(300);
+
+					s32 result;
+					
+					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+
+					ec11_counter_bak = BMQCounterTotal_zoom;
+					BMQCounterTotal_zoom = 0;
+					result = (result/CTL_STEPS_BASE)+1;
+					
+					for(s32 i=0;i<result;i++)
+					{
+						if(ec11_counter_bak > 0)
+						{
+							pelcod_zf_packet_send(PD_FOCUS_FAR_CMD,result);
+						}
+						else
+						{
+							pelcod_zf_packet_send(PD_FOCUS_NEAR_CMD,result);
+
+						}
+						rt_thread_delay(60);
+					}
+
+					pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				}
+				
+		}
+
+		rt_thread_delay(40);
+    }
+}
+
+
+
+void rt_ec11_zoom_thread_entry(void* parameter)
+{
+
+	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
+	
+    while(1)
+	{
+		k = key2_zoom_press_check();
+		if(k)
+		{
+			//while(1)
+			{
+
+				
+				if(BMQCounterTotal_zoom!= 0)  //
+				{
+					ec11_counter_pre = BMQCounterTotal_zoom;
+					
+					rt_thread_delay(300);
+
+					s32 result;
+					
+					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+
+					ec11_counter_bak = BMQCounterTotal_zoom;
+					BMQCounterTotal_zoom = 0;
+					result = (result/CTL_STEPS_BASE)+1;
+					
+					for(s32 i=0;i<result;i++)
+					{
+						if(ec11_counter_bak > 0)
+						{
+							pelcod_zf_packet_send(1,result);
+						}
+						else
+						{
+							pelcod_zf_packet_send(2,result);
+
+						}
+						rt_thread_delay(60);
+					}
+
+					pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				}
+
+			}
+
+		}
+		else
+		{
+			
+			if(BMQCounterTotal_zoom != 0)  //
+			{
+					ec11_counter_pre = BMQCounterTotal_zoom;
+					
+					rt_thread_delay(300);
+
+					s32 result;
+					
+					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+
+					ec11_counter_bak = BMQCounterTotal_zoom;
+					BMQCounterTotal_zoom = 0;
+					result = (result/CTL_STEPS_BASE)+1;
+					
+					for(s32 i=0;i<result;i++)
+					{
+						if(ec11_counter_bak > 0)
+						{
+							pelcod_zf_packet_send(1,result);
+						}
+						else
+						{
+							pelcod_zf_packet_send(2,result);
+
+						}
+						rt_thread_delay(60);
+					}
+
+					pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				}
+				
+		}
+
+		rt_thread_delay(40);
+    }
+}
+
+
+
 
 #if 1
 void rt_ec11_thread_entry(void* parameter)
 {
 
 	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
 	
     while(1)
 	{
 		k = key2_press_check();
 		if(k)
 		{
-			while(1)
+			//while(1)
 			{
 
-				if(BMQCounterTotal > 1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					pelcod_open_close_packet_send(0);
-
-				}
-
-				if(BMQCounterTotal < -1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					pelcod_open_close_packet_send(1);
-
-				}
 				
+				if(BMQCounterTotal != 0)  //
+				{
+					ec11_counter_pre = BMQCounterTotal;
+					
+					rt_thread_delay(300);
 
-				rt_thread_delay(600);
+					s32 result;
+					
+					result = (abs(BMQCounterTotal-ec11_counter_pre));
+
+					ec11_counter_bak = BMQCounterTotal;
+					BMQCounterTotal = 0;
+					result = (result/CTL_STEPS_BASE)+1;
+					
+					for(s32 i=0;i<result;i++)
+					{
+						if(ec11_counter_bak > 0)
+						{
+							pelcod_open_close_packet_send(0);
+						}
+						else
+						{
+							pelcod_open_close_packet_send(1);
+
+						}
+						rt_thread_delay(60);
+					}
+
+					pelcod_stop_packet_send();
+				}
+
 			}
 
 		}
 		else
 		{
-			if(ec11_power_m > 1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					//EXTI9_5_int(0);
-					pelcod_open_close_packet_send(0);
-					ec11_power_m = 0;
-					rt_thread_delay(50);
-					pelcod_stop_packet_send();
+			
+			if(BMQCounterTotal != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal;
+				
+				rt_thread_delay(300);
 
-					//EXTI9_5_int(1);
+				s32 result;
+				
+				result = (abs(BMQCounterTotal-ec11_counter_pre));
+
+				ec11_counter_bak = BMQCounterTotal;
+				BMQCounterTotal = 0;
+
+				result = (result/CTL_STEPS_BASE)+1;
+				for(s32 i=0;i<result;i++)
+				{
+					if(ec11_counter_bak > 0)
+					{
+						pelcod_open_close_packet_send(0);
+					}
+					else
+					{
+						pelcod_open_close_packet_send(1);
+
+					}
+					rt_thread_delay(60);
 				}
 
-				if(ec11_power_m < -1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					//EXTI9_5_int(0);
-					pelcod_open_close_packet_send(1);
-					ec11_power_m = 0;
-					rt_thread_delay(50);
-					pelcod_stop_packet_send();
-					//EXTI9_5_int(1);
-				}
+				pelcod_stop_packet_send();
+			}
 				
 		}
 
-		k = key_sw22_check();
-		if(k==1)
-		{
-			pelcod_open_close_packet_send(0);
-		}
-		else if(k==0x10)
-			{
-
-		pelcod_stop_packet_send();
-
-		}
 		rt_thread_delay(40);
     }
 }
@@ -1828,48 +2207,9 @@ static rt_uint8_t count;
 //////////22222222222222
 
 void ec11_ISR(void)                                       
-{                                                              
-    //TCNT3=0xfc41;                                               // 125uS
-    if(!Comparing) 
-	{                                            
-       PulAPol = GPIO_ReadInputData(GPIOB);//PulAPol=PINE; 
-	   PulLastState=PulAPol; 
-	   Comparing++;   
-       PulAPol&=0x0080; 
-	   PulLastState&=0x0180; 
-	   PulAPol>>=7;    
-	}                                                   
+{
 
-	if(Comparing)                                                         
-	{                                                                    
-		PulBPol=GPIO_ReadInputData(GPIOB);                                                     
-		PulState=PulBPol;                                                
-		PulState&=0x0180;                                                   
-		PulBPol&=0x0100;                                                   
-		PulBPol>>=8;                                                      
-		if(PulState!=PulLastState) 
-		{ 
-			if(PulBPol==PulAPol) 
-			{ 
-				RunRight=1; BMQCounterTotal--;
-			}
-			else 
-			{ 
-				RunRight=0; BMQCounterTotal++; 
-			} 
-			Comparing=0;  
-		}  
-	}                                                                    
-    if(!Comparing) 
-	{                                                    
-		PulAPol=PulState; 
-		PulLastState=PulAPol; 
-		Comparing++; 
-		PulAPol&=0x0080; 
-		PulLastState&=0x0180; 
-		PulAPol>>=7;      
-	}                                                     
-}    
+}
 
 
 static void timeout1(void* parameter)  
@@ -1900,6 +2240,20 @@ int rt_key_ctl_init(void)
 
 	init_thread = rt_thread_create("ec11",
                                    rt_ec11_thread_entry, RT_NULL,
+                                   512, 10, 5);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+
+
+	init_thread = rt_thread_create("ec11z",
+                                   rt_ec11_zoom_thread_entry, RT_NULL,
+                                   512, 10, 5);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+
+
+	init_thread = rt_thread_create("ec11f",
+                                   rt_ec11_focus_thread_entry, RT_NULL,
                                    512, 10, 5);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);

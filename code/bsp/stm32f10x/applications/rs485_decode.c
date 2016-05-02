@@ -271,7 +271,7 @@ rt_err_t rs485_send_data(u8* data,u16 len)
 	
 	rt_device_write(uart1_dev_my->device, 0, data, len);
 
-	rt_thread_delay (80);
+	rt_thread_delay (10);
 	RS485_RX_ENABLE;
 
 	rt_mutex_release(rs485_send_mut);

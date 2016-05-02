@@ -9,6 +9,16 @@ extern void pelcod_lrud_pre_packet_send(u8 lrudcmd,u8 lrspeed,u8 udspeed);
 extern void pelcod_zf_packet_send(u8 cmd,u8 zfspeed);
 
 
+
+//
+#define	PD_ZOOM_FOCUS_STOP		0
+#define	PD_ZOOM_TELE_CMD		1
+#define	PD_ZOOM_WIDE_CMD		2
+#define	PD_FOCUS_FAR_CMD		3
+#define	PD_FOCUS_NEAR_CMD		4
+
+
+
 /*****************************************************派尔高协议部分***********************************************/
 ////////////////各协议同步字/////////////////////////
 #define PELCOD_SYNC_WORD 0xff
