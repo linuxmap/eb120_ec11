@@ -138,6 +138,11 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGUARM</Key>
+          <Name></Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>JL2CM3</Key>
           <Name>-U59106098 -O111 -S8 -ZTIFSpeedSel50000 -A0 -C0 -JU1 -JI127.0.0.1 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(1BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -TB1 -TFE0 -FO31 -FD20000000 -FC1000 -FN1 -FF0STM32F10x_512.FLM -FS08000000 -FL080000 -FP0($$Device:STM32F103RC$Flash\STM32F10x_512.FLM)</Name>
         </SetRegEntry>
@@ -176,9 +181,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>295</LineNumber>
+          <LineNumber>1833</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134247304</Address>
+          <Address>134258382</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -187,14 +192,14 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\eb120\applications/key_ctl.c\295</Expression>
+          <Expression>\\eb120\applications/key_ctl.c\1833</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>1658</LineNumber>
+          <LineNumber>1925</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134257340</Address>
+          <Address>134258858</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -203,14 +208,14 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\eb120\applications/key_ctl.c\1658</Expression>
+          <Expression>\\eb120\applications/key_ctl.c\1925</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>1713</LineNumber>
+          <LineNumber>102</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134257490</Address>
+          <Address>134237314</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -219,7 +224,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>F:\宓屽叆寮忓紑鍙?鍏朵粬椤圭洰\eb120_ec11\eb120_ec11\code\bsp\stm32f10x\applications\key_ctl.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\eb120\applications/key_ctl.c\1713</Expression>
+          <Expression>\\eb120\applications/key_ctl.c\102</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -227,6 +232,11 @@
           <count>0</count>
           <WinNumber>1</WinNumber>
           <ItemText>BMQCounterTotal,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>BMQCounterTotal_zoom,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -277,6 +287,10 @@
         <Entry>
           <Name>System Viewer\GPIOB</Name>
           <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\GPIOC</Name>
+          <WinId>35904</WinId>
         </Entry>
       </SystemViewers>
     </TargetOption>

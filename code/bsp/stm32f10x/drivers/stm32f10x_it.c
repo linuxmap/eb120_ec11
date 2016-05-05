@@ -156,7 +156,6 @@ extern void ec11_key_interrupt(void);
 
 void EXTI2_IRQHandler(void)
 {
-	static u8 key_pb78_time=0;
 	
     /* enter interrupt */
     rt_interrupt_enter();
@@ -171,7 +170,6 @@ void EXTI2_IRQHandler(void)
 
 void EXTI15_10_IRQHandler(void)
 {
-	static u8 key_pb78_time=0;
 	
     /* enter interrupt */
     rt_interrupt_enter();
@@ -192,7 +190,6 @@ void EXTI15_10_IRQHandler(void)
   */
 void EXTI9_5_IRQHandler(void)
 {
-	static u8 key_pb78_time=0;
 	
     /* enter interrupt */
     rt_interrupt_enter();

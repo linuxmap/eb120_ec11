@@ -139,9 +139,9 @@ void ec11_focus_key_interrupt(void)
 			PulAPol=PulState; 
 			PulLastState=PulAPol; 
 			Comparing++; 
-			PulAPol&=0x0080; 
-			PulLastState&=0x0180; 
-			PulAPol>>=7;      
+			PulAPol&=0x0004; 
+			PulLastState&=0x000C; 
+			PulAPol>>=2;      
 		}                                                     
 	}
 		
@@ -201,9 +201,9 @@ void ec11_zoom_key_interrupt(void)
 			PulAPol=PulState; 
 			PulLastState=PulAPol; 
 			Comparing++; 
-			PulAPol&=0x0080; 
-			PulLastState&=0x0180; 
-			PulAPol>>=7;      
+			PulAPol&=0x4000; 
+			PulLastState&=0xC000; 
+			PulAPol>>=14;      
 		}                                                     
 	}
 		
@@ -376,7 +376,7 @@ void ec11_key_zoom_pin_init(void)
 	/* Enable AFIO clock */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	/* Connect EXTI9 Line to PB.09 pin */
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource14);
 
 	/* Configure EXTI9 line */
 	EXTI_InitStructure.EXTI_Line = EXTI_Line14;
@@ -483,11 +483,11 @@ u8 key2_press_check(void)
 //0,press; 1,no press
 u8 key2_focus_press_check(void)
 {
-	if(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2) == 0)
+	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
 	{
 		rt_thread_delay(20);
 
-			if(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2) == 0)
+			if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
 				return 0;
 	}
 
@@ -498,11 +498,11 @@ u8 key2_focus_press_check(void)
 //0,press; 1,no press
 u8 key2_zoom_press_check(void)
 {
-	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
+	if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) == 0)
 	{
 		rt_thread_delay(20);
 
-			if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0)
+			if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) == 0)
 				return 0;
 	}
 
@@ -1822,17 +1822,20 @@ void rt_ec11_focus_thread_entry(void* parameter)
 				
 				if(BMQCounterTotal_focus!= 0)  //
 				{
-					ec11_counter_pre = BMQCounterTotal_zoom;
+					ec11_counter_pre = BMQCounterTotal_focus;
 					
 					rt_thread_delay(300);
 
 					s32 result;
 					
-					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+					result = (abs(BMQCounterTotal_focus-ec11_counter_pre));
 
-					ec11_counter_bak = BMQCounterTotal_zoom;
-					BMQCounterTotal_zoom = 0;
+					ec11_counter_bak = BMQCounterTotal_focus;
+					BMQCounterTotal_focus = 0;
 					result = (result/CTL_STEPS_BASE)+1;
+
+
+					result = 1;
 					
 					for(s32 i=0;i<result;i++)
 					{
@@ -1859,7 +1862,7 @@ void rt_ec11_focus_thread_entry(void* parameter)
 			
 			if(BMQCounterTotal_focus != 0)  //
 			{
-					ec11_counter_pre = BMQCounterTotal_zoom;
+					ec11_counter_pre = BMQCounterTotal_focus;
 					
 					rt_thread_delay(300);
 
@@ -1867,8 +1870,8 @@ void rt_ec11_focus_thread_entry(void* parameter)
 					
 					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
 
-					ec11_counter_bak = BMQCounterTotal_zoom;
-					BMQCounterTotal_zoom = 0;
+					ec11_counter_bak = BMQCounterTotal_focus;
+					BMQCounterTotal_focus = 0;
 					result = (result/CTL_STEPS_BASE)+1;
 					
 					for(s32 i=0;i<result;i++)
@@ -1920,11 +1923,13 @@ void rt_ec11_zoom_thread_entry(void* parameter)
 
 					s32 result;
 					
-					result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
+					//result = (abs(BMQCounterTotal_zoom-ec11_counter_pre));
 
 					ec11_counter_bak = BMQCounterTotal_zoom;
 					BMQCounterTotal_zoom = 0;
 					result = (result/CTL_STEPS_BASE)+1;
+
+					result = 1;
 					
 					for(s32 i=0;i<result;i++)
 					{
