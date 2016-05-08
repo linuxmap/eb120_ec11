@@ -98,6 +98,38 @@ void pelcod_set_pre_extend_packet_send(u8 val,u8 cmd)
 }
 
 
+
+//val: 0,open; 1,close
+void pelcod_open_close_packet_send_exptend(u8 val,u8 speed)
+{
+	u8 cnt;
+	
+	u8 cmd_buff_private[7];
+	cmd_buff_private[0] = 0xff;
+	cmd_buff_private[1] = target_id;
+	if(val)//close
+		cmd_buff_private[2] = 0x04;
+	else
+		cmd_buff_private[2] = 0x02;
+	cmd_buff_private[3] = speed;
+	cmd_buff_private[4] = 0;
+	cmd_buff_private[5] = 0;
+	
+	cmd_buff_private[6] = cmd_buff_private[1] + cmd_buff_private[2] + cmd_buff_private[3] + cmd_buff_private[4] + cmd_buff_private[5];
+	rs485_send_data(cmd_buff_private,7);
+
+//	cnt=3;
+//	while(cnt--)
+//	{
+//		if(RT_EOK == rs485_recieve_check(val))
+//			break;
+//		else
+//			rs485_send_data(cmd_buff_private,7);
+//	}
+}
+
+
+
 //val: 0,open; 1,close
 void pelcod_open_close_packet_send(u8 val)
 {

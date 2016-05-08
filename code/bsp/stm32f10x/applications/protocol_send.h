@@ -8,6 +8,8 @@ extern void pelcod_stop_packet_send(void);
 extern void pelcod_lrud_pre_packet_send(u8 lrudcmd,u8 lrspeed,u8 udspeed);
 extern void pelcod_zf_packet_send(u8 cmd,u8 zfspeed);
 
+//exptend
+extern void pelcod_open_close_packet_send_exptend(u8 val,u8 speed);
 
 
 //

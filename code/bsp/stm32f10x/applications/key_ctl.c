@@ -1801,9 +1801,85 @@ void rt_ec11_mid_key_thread_entry(void* parameter)
 }
 
 
-#define	CTL_STEPS_BASE		3
+#define	CTL_STEPS_BASE		2
 
+#define	PD_CMD_DELAY_MS		200
 
+#if 1
+void rt_ec11_focus_thread_entry(void* parameter)
+{
+
+	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
+	static u8 key_press_state_tmp = 0;
+	
+	while(1)
+	{
+		k = key2_focus_press_check();
+		if(k)
+		{
+			if(key_press_state_tmp)
+			{
+				pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				key_press_state_tmp = 0;
+				continue;
+			}
+			
+			if(BMQCounterTotal_focus != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal_focus;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal_focus;
+				BMQCounterTotal_focus = 0;
+
+				if(result > 0)
+					pelcod_zf_packet_send(PD_FOCUS_FAR_CMD,abs(result));
+				else
+					pelcod_zf_packet_send(PD_FOCUS_NEAR_CMD,abs(result));
+
+				
+				rt_thread_delay(60);
+				pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+			}
+
+		}
+		else
+		{
+			
+			if(BMQCounterTotal_focus != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal_focus;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal_focus;
+				
+				if(result > 0)
+					pelcod_zf_packet_send(PD_FOCUS_FAR_CMD,abs(result));
+				else
+					pelcod_zf_packet_send(PD_FOCUS_NEAR_CMD,abs(result));
+
+				
+				rt_thread_delay(60);
+
+				key_press_state_tmp = 1;
+				
+			}
+				
+		}
+
+		rt_thread_delay(40);
+	}
+}
+
+#else
 void rt_ec11_focus_thread_entry(void* parameter)
 {
 
@@ -1824,7 +1900,7 @@ void rt_ec11_focus_thread_entry(void* parameter)
 				{
 					ec11_counter_pre = BMQCounterTotal_focus;
 					
-					rt_thread_delay(300);
+					rt_thread_delay(PD_CMD_DELAY_MS);
 
 					s32 result;
 					
@@ -1864,7 +1940,7 @@ void rt_ec11_focus_thread_entry(void* parameter)
 			{
 					ec11_counter_pre = BMQCounterTotal_focus;
 					
-					rt_thread_delay(300);
+					rt_thread_delay(PD_CMD_DELAY_MS);
 
 					s32 result;
 					
@@ -1896,9 +1972,84 @@ void rt_ec11_focus_thread_entry(void* parameter)
 		rt_thread_delay(40);
     }
 }
+#endif
+
+#if 1
+void rt_ec11_zoom_thread_entry(void* parameter)
+{
+
+	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
+	static u8 key_press_state_tmp = 0;
+	
+	while(1)
+	{
+		k = key2_zoom_press_check();
+		if(k)
+		{
+			if(key_press_state_tmp)
+			{
+				pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+				key_press_state_tmp = 0;
+				continue;
+			}
+			
+			if(BMQCounterTotal_zoom != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal_zoom;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal_zoom;
+				BMQCounterTotal_zoom = 0;
+
+				if(result > 0)
+					pelcod_zf_packet_send(1,abs(result));
+				else
+					pelcod_zf_packet_send(2,abs(result));
+
+				
+				rt_thread_delay(60);
+				pelcod_zf_packet_send(PD_ZOOM_FOCUS_STOP,0);
+			}
+
+		}
+		else
+		{
+			
+			if(BMQCounterTotal_zoom != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal_zoom;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal_zoom;
+				
+				if(result > 0)
+					pelcod_zf_packet_send(1,abs(result));
+				else
+					pelcod_zf_packet_send(2,abs(result));
+
+				
+				rt_thread_delay(60);
+
+				key_press_state_tmp = 1;
+				
+			}
+				
+		}
+
+		rt_thread_delay(40);
+	}
+}
 
 
-
+#else
 void rt_ec11_zoom_thread_entry(void* parameter)
 {
 
@@ -1919,7 +2070,7 @@ void rt_ec11_zoom_thread_entry(void* parameter)
 				{
 					ec11_counter_pre = BMQCounterTotal_zoom;
 					
-					rt_thread_delay(300);
+					rt_thread_delay(PD_CMD_DELAY_MS);
 
 					s32 result;
 					
@@ -1958,7 +2109,7 @@ void rt_ec11_zoom_thread_entry(void* parameter)
 			{
 					ec11_counter_pre = BMQCounterTotal_zoom;
 					
-					rt_thread_delay(300);
+					rt_thread_delay(PD_CMD_DELAY_MS);
 
 					s32 result;
 					
@@ -1990,11 +2141,83 @@ void rt_ec11_zoom_thread_entry(void* parameter)
 		rt_thread_delay(40);
     }
 }
+#endif
 
-
-
+//iris 
 
 #if 1
+void rt_ec11_thread_entry(void* parameter)
+{
+
+	u16 k;
+	s32 ec11_counter_pre = 0,ec11_counter_bak = 0;
+
+	static u8 key_press_state_tmp = 0;
+	
+    while(1)
+	{
+		k = key2_press_check();
+		if(k)
+		{
+			if(key_press_state_tmp)
+			{
+				pelcod_stop_packet_send();
+				key_press_state_tmp = 0;
+				continue;
+			}
+			
+			if(BMQCounterTotal != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal;
+				BMQCounterTotal = 0;
+
+				if(result > 0)
+					pelcod_open_close_packet_send_exptend(0,abs(result));
+				else
+					pelcod_open_close_packet_send_exptend(1,abs(result));
+
+				rt_thread_delay(60);
+				pelcod_stop_packet_send();
+			}
+
+		}
+		else
+		{
+			
+			if(BMQCounterTotal != 0)  //
+			{
+				ec11_counter_pre = BMQCounterTotal;
+				
+				rt_thread_delay(PD_CMD_DELAY_MS);
+
+				s32 result;
+				
+				result = BMQCounterTotal;
+
+				if(result > 0)
+					pelcod_open_close_packet_send_exptend(0,abs(result));
+				else
+					pelcod_open_close_packet_send_exptend(1,abs(result));
+
+				rt_thread_delay(60);
+
+				key_press_state_tmp = 1;
+				
+			}
+				
+		}
+
+		rt_thread_delay(40);
+    }
+}
+
+#else
 void rt_ec11_thread_entry(void* parameter)
 {
 
@@ -2015,7 +2238,7 @@ void rt_ec11_thread_entry(void* parameter)
 				{
 					ec11_counter_pre = BMQCounterTotal;
 					
-					rt_thread_delay(300);
+					rt_thread_delay(PD_CMD_DELAY_MS);
 
 					s32 result;
 					
@@ -2052,7 +2275,7 @@ void rt_ec11_thread_entry(void* parameter)
 			{
 				ec11_counter_pre = BMQCounterTotal;
 				
-				rt_thread_delay(300);
+				rt_thread_delay(PD_CMD_DELAY_MS);
 
 				s32 result;
 				
@@ -2084,89 +2307,8 @@ void rt_ec11_thread_entry(void* parameter)
 		rt_thread_delay(40);
     }
 }
-
-#else
-void rt_ec11_thread_entry(void* parameter)
-{
-
-	u16 k;
-	
-    while(1)
-	{
-		k = key2_press_check();
-
-		if(k)
-		{
-			while(1)
-			{
-
-				if(ec11_power_m > 1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					pelcod_open_close_packet_send(0);
-					ec11_power_m = 0;
-				}
-
-				if(ec11_power_m < -1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					pelcod_open_close_packet_send(1);
-					ec11_power_m = 0;
-				}
-				
-				if(key2_press_check() == 0)
-				{
-					pelcod_stop_packet_send();
-					break;
-
-				}
-
-				rt_thread_delay(60);
-			}
-
-		}
-		else
-		{
-			if(ec11_power_m > 1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					//EXTI9_5_int(0);
-					pelcod_open_close_packet_send(0);
-					ec11_power_m = 0;
-					rt_thread_delay(50);
-					pelcod_stop_packet_send();
-
-					//EXTI9_5_int(1);
-				}
-
-				if(ec11_power_m < -1)  //有旋转编码，且时间闪烁
-				{
-					//ec11_power_m=100;
-					//EXTI9_5_int(0);
-					pelcod_open_close_packet_send(1);
-					ec11_power_m = 0;
-					rt_thread_delay(50);
-					pelcod_stop_packet_send();
-					//EXTI9_5_int(1);
-				}
-				
-		}
-
-		k = key_sw22_check();
-		if(k==1)
-		{
-			pelcod_open_close_packet_send(0);
-		}
-		else if(k==0x10)
-			{
-
-		pelcod_stop_packet_send();
-
-		}
-		rt_thread_delay(40);
-    }
-}
 #endif
+
 
 u8 iris_set_ok=1;
 u8 cam_filter_set_ok = 1;
@@ -2232,7 +2374,7 @@ int rt_key_ctl_init(void)
     rt_thread_t init_thread;
 
 	key_pin_init();
-	joystick_ADC_Init();
+	//joystick_ADC_Init();
 	
 	rt_thread_delay(200);
 
