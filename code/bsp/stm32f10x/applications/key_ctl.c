@@ -93,7 +93,66 @@ else
 }
 
 
+#if 1
+void ec11_focus_key_interrupt(void)
+{  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
+		
+	if((EXTI_GetITStatus(EXTI_Line2) != RESET))
+	{
 
+			{                                                              
+	    //TCNT3=0xfc41;                                               // 125uS
+	    if(!Comparing) 
+		{                                            
+	       PulAPol = GPIO_ReadInputData(GPIOC)&0x000C;//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+	       PulAPol&=0x0004; 
+		   PulLastState&=0x000C; 
+		   PulAPol>>=2;    
+		}                                                   
+
+		if(Comparing)                                                         
+		{                                                                    
+			PulBPol=GPIO_ReadInputData(GPIOC)&0x000C;                                                     
+			PulState=PulBPol;                                                
+			PulState&=0x000C;                                                   
+			PulBPol&=0x0008;                                                   
+			PulBPol>>=3;                                                      
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight_focus=1; BMQCounterTotal_focus--;
+				}
+				else 
+				{ 
+					RunRight_focus=0; BMQCounterTotal_focus++; 
+				} 
+				Comparing=0;  
+			}  
+		}                                                                    
+	    if(!Comparing) 
+		{                                                    
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x0004; 
+			PulLastState&=0x000C; 
+			PulAPol>>=2;      
+		}                                                     
+	}
+		
+
+	/* Clear the  EXTI line 8 pending bit */
+		EXTI_ClearITPendingBit(EXTI_Line2);
+	}
+
+}
+
+#else
 void ec11_focus_key_interrupt(void)
 {  
 	static u8 Comparing = 0;
@@ -154,8 +213,71 @@ void ec11_focus_key_interrupt(void)
 	}
 
 }
+#endif
 
 
+#if 1
+void ec11_zoom_key_interrupt(void)
+{  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
+
+	
+	if((EXTI_GetITStatus(EXTI_Line14) != RESET))
+	{
+
+			{                                                              
+	    //TCNT3=0xfc41;                                               // 125uS
+	    if(!Comparing) 
+		{                                            
+	       PulAPol = ((uint16_t)GPIOC->IDR)&0xC000;//GPIO_ReadInputData(GPIOC)&0xC000;//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+	       PulAPol&=0x4000; 
+		   PulLastState&=0xC000; 
+		   PulAPol>>=14;    
+		}                                                   
+
+		if(Comparing)                                                         
+		{                                                                    
+			PulBPol=((uint16_t)GPIOC->IDR)&0xC000;                                                     
+			PulState=PulBPol;                                                
+			PulState&=0xC000;                                                   
+			PulBPol&=0x8000;                                                   
+			PulBPol>>=15;                                                      
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight_zoom=1; BMQCounterTotal_zoom--;
+				}
+				else 
+				{ 
+					RunRight_zoom=0; BMQCounterTotal_zoom++; 
+				} 
+				Comparing=0;  
+			}  
+		}                                                                    
+	    if(!Comparing) 
+		{                                                    
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x4000; 
+			PulLastState&=0xC000; 
+			PulAPol>>=14;      
+		}                                                     
+	}
+		
+
+	/* Clear the  EXTI line 8 pending bit */
+		EXTI_ClearITPendingBit(EXTI_Line14);
+	}
+
+}
+
+
+#else
 void ec11_zoom_key_interrupt(void)
 {  
 	static u8 Comparing = 0;
@@ -216,9 +338,73 @@ void ec11_zoom_key_interrupt(void)
 	}
 
 }
+#endif
 
 
+#if 1
 
+void ec11_key_interrupt(void)
+{  
+	static u8 Comparing = 0;
+	static u16 PulAPol,PulBPol,PulState,PulLastState;
+		
+	if((EXTI_GetITStatus(EXTI_Line7) != RESET))
+	{
+
+			{															   
+		//TCNT3=0xfc41; 											  // 125uS
+		if(!Comparing) 
+		{											 
+		   PulAPol = GPIO_ReadInputData(GPIOB)&0x0180;//PulAPol=PINE; 
+		   PulLastState=PulAPol; 
+		   Comparing++;   
+		   PulAPol&=0x0080; 
+		   PulLastState&=0x0180; 
+		   PulAPol>>=7;    
+		}													
+
+		if(Comparing)														  
+		{																	 
+			PulBPol=GPIO_ReadInputData(GPIOB)&0x0180;													   
+			PulState=PulBPol;												 
+			PulState&=0x0180;													
+			PulBPol&=0x0100;												   
+			PulBPol>>=8;													  
+			if(PulState!=PulLastState) 
+			{ 
+				if(PulBPol==PulAPol) 
+				{ 
+					RunRight=1; BMQCounterTotal--;
+				}
+				else 
+				{ 
+					RunRight=0; BMQCounterTotal++; 
+				} 
+				Comparing=0;  
+			}  
+		}																	 
+		if(!Comparing) 
+		{													 
+			PulAPol=PulState; 
+			PulLastState=PulAPol; 
+			Comparing++; 
+			PulAPol&=0x0080; 
+			PulLastState&=0x0180; 
+			PulAPol>>=7;	  
+		}													  
+	}
+		
+
+	/* Clear the  EXTI line 8 pending bit */
+		if((EXTI_GetITStatus(EXTI_Line8) != RESET))
+			EXTI_ClearITPendingBit(EXTI_Line8);
+		else
+			EXTI_ClearITPendingBit(EXTI_Line7);
+	}
+
+}
+
+#else
 void ec11_key_interrupt(void)
 {  
 	static u8 Comparing = 0;
@@ -279,7 +465,7 @@ void ec11_key_interrupt(void)
 	}
 
 }
-
+#endif
 
 
 
@@ -362,7 +548,7 @@ void ec11_key_zoom_pin_init(void)
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
 	
 	GPIO_Init(GPIOC, &GPIO_InitStructure);	
 
@@ -410,7 +596,7 @@ void ec11_key_focus_pin_init(void)
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);	
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
@@ -1579,7 +1765,7 @@ void rt_key_thread_entry(void* parameter)
 	{
 		
 		
-		rs485_send_data(wifi_enter_at_mode,strlen(wifi_enter_at_mode));
+		//rs485_send_data(wifi_enter_at_mode,strlen(wifi_enter_at_mode));
 		
 		
 		if(key_from_wait)
@@ -1599,13 +1785,13 @@ void rt_key_thread_entry(void* parameter)
 			//rt_thread_delay(50);
 		}
 
-		k = Get_joystick_Value();
+		//k = Get_joystick_Value();
 		
 		//osd_line_1to4_all_disp();
 
 		
 
-		zoomfocus_key_handle();
+		//zoomfocus_key_handle();
 		
 		rt_thread_delay(20);
     }
