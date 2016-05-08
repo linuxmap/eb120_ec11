@@ -111,8 +111,8 @@ void pelcod_open_close_packet_send_exptend(u8 val,u8 speed)
 		cmd_buff_private[2] = 0x04;
 	else
 		cmd_buff_private[2] = 0x02;
-	cmd_buff_private[3] = speed;
-	cmd_buff_private[4] = 0;
+	cmd_buff_private[3] = 0;
+	cmd_buff_private[4] = speed;
 	cmd_buff_private[5] = 0;
 	
 	cmd_buff_private[6] = cmd_buff_private[1] + cmd_buff_private[2] + cmd_buff_private[3] + cmd_buff_private[4] + cmd_buff_private[5];

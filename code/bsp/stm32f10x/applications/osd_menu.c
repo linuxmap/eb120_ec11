@@ -18,8 +18,6 @@
 const u8 *iris_msg_string[IRIS_MSG_ITERMS_MAX]=
 {
 {"Auto"},
-{" AV "},
-{" TV "},
 {"Man "},
 {"    "},
 };
@@ -62,9 +60,7 @@ const u8 *opt_msg_string[]=
 
 
 {"Auto"},//16
-{" AV "},
-{" TV "},
-{"Man "},
+{"Manul "},
 {"    "},
 
 
@@ -215,7 +211,7 @@ void osd_line2_disp(u8 x)
 {
 	osd_line2_val_disp_clear();
 	osd_para_mode_disp(cam_para_mode);
-	osd_iris_mode_disp(iris_mode);
+	//osd_iris_mode_disp(iris_mode);
 	osd_filter_mode_disp(cam_filter_mode);
 
 }
@@ -391,26 +387,29 @@ void osd_filter_mode_disp_xy(u8 mode,u8 x,u8 y)
 }
 
 const u8 *osd_shutter_string="S:";
-const u8 *osd_iris_string="F:";
-const u8 *auto_string="auto";
+const u8 *osd_iris_auto_string="P-IRIS     A";
+const u8 *osd_iris_man_string="P-IRIS     M";
+
+const u8 *auto_string="A";
+const u8 *man_string="M";
 
 
-#define	OSD_IRIS_X_START		80
+#define	OSD_IRIS_X_START		0//80
 
 void osd_iris_val_disp(u8 irisv)
 {
 	if(irisv==0)
 	{
-	OLED_ShowString(OSD_IRIS_X_START,OSD_LINE3_Y_POS,(u8*)osd_iris_string,16); 
+	OLED_ShowString(OSD_IRIS_X_START,OSD_LINE3_Y_POS,(u8*)osd_iris_auto_string,16); 
 
-	OLED_ShowString(OSD_IRIS_X_START+16,OSD_LINE3_Y_POS,(u8*)auto_string,16); 
+	//OLED_ShowString(OSD_IRIS_X_START+11*8,OSD_LINE3_Y_POS,(u8*)osd_iris_man_string,16); 
 
 	}
 	else
 	{
-	OLED_ShowString(OSD_IRIS_X_START,OSD_LINE3_Y_POS,(u8*)osd_iris_string,16); 
+	OLED_ShowString(OSD_IRIS_X_START,OSD_LINE3_Y_POS,(u8*)osd_iris_man_string,16); 
 
-	OLED_ShowNum(OSD_IRIS_X_START+16,OSD_LINE3_Y_POS,irisv,irisv>9?1:2,16);
+	//OLED_ShowNum(OSD_IRIS_X_START+12*8,OSD_LINE3_Y_POS,irisv,irisv>9?1:2,16);
 	}
 }
 
@@ -460,25 +459,9 @@ void osd_line3_disp(u8 select)
 	OLED_Clear_line(0,OSD_LINE3_Y_POS,16);
 	OLED_Clear_line(0,OSD_LINE3_Y_POS+1,16);
 
-	u8 svtmp=0,ivtmp=0;
-
-	switch(iris_mode)
-	{
-	case 0:
-		svtmp=0;
-		break;
-	case 1:
-		svtmp = shutter_val;
-		break;
-	case 2:
-		ivtmp = iris_val;
-		break;
-	default:
-		break;
-	}
 	
-	osd_iris_val_disp(ivtmp);
-	osd_shutter_val_disp(svtmp);
+	osd_iris_val_disp(iris_mode);
+	//osd_shutter_val_disp(svtmp);
 
 
 }

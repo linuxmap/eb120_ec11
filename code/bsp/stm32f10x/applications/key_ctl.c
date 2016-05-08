@@ -1470,25 +1470,23 @@ void key_analyze(u16 val)
 		}
 		break;
 	case key_to_release(KEY_IRIS):
-		if(key_num_val==0)
-			key_value_all_clear();
-		if(key_num_val > 0 && key_num_val < 5)
+//		if(key_num_val==0)
+//			key_value_all_clear();
+//		if(key_num_val > 0 && key_num_val < 5)
 		{
 			
 			{
-				iris_mode = key_num_val-1;
-				if(iris_mode>3)
+				//iris_mode = key_num_val-1;
+				if(iris_mode == 1)
 					iris_mode=0;
-
+				else
+					iris_mode = 1;
 				if(iris_mode==0)
 					pelcod_set_pre_packet_send(128);
 				else if(iris_mode==1)
-					pelcod_call_pre_packet_send(128);
-				else if(iris_mode==2)
-					pelcod_call_pre_packet_send(127);
-				else if(iris_mode==3)
 					pelcod_call_pre_packet_send(126);
-				osd_line2_disp(1);
+				//osd_line2_disp(1);
+				osd_line3_disp(1);
 				osd_opt_message_disp(16+iris_mode,OSD_MSG_DISP_MAX_SECOND);
 			key_value_all_clear();
 			}
@@ -2347,7 +2345,7 @@ void rt_ec11_thread_entry(void* parameter)
 		{
 			if(key_press_state_tmp)
 			{
-				pelcod_stop_packet_send();
+				//pelcod_stop_packet_send();
 				key_press_state_tmp = 0;
 				continue;
 			}
@@ -2368,8 +2366,8 @@ void rt_ec11_thread_entry(void* parameter)
 				else
 					pelcod_open_close_packet_send_exptend(1,abs(result));
 
-				rt_thread_delay(60);
-				pelcod_stop_packet_send();
+				rt_thread_delay(40);
+				//pelcod_stop_packet_send();
 			}
 
 		}
@@ -2391,7 +2389,7 @@ void rt_ec11_thread_entry(void* parameter)
 				else
 					pelcod_open_close_packet_send_exptend(1,abs(result));
 
-				rt_thread_delay(60);
+				rt_thread_delay(40);
 
 				key_press_state_tmp = 1;
 				
