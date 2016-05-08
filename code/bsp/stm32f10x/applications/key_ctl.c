@@ -1174,7 +1174,7 @@ void key_pin_init(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 	
-	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8;
+	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_15|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8;
     GPIOD_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
     GPIOD_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(KEY_PORT1, &GPIOD_InitStructure);	
@@ -1182,7 +1182,7 @@ void key_pin_init(void)
 	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_10|GPIO_Pin_11|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
 	GPIO_Init(KEY_PORT2, &GPIOD_InitStructure);	
 
-	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9;
+	GPIOD_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_12;
 	GPIO_Init(KEY_PORT3, &GPIOD_InitStructure);	
 
 	key_2_pin_init();
@@ -1219,8 +1219,8 @@ u32 key_merge(void)
 	key_tmp |= (data3<<2)&0x00000800;//11
 
 	key_tmp |= (data<<4)&0x1000;//12
-	key_tmp |= (data<<2)&0x2000;//13
-	key_tmp |= (data<<2)&0x4000;//14
+	key_tmp |= (data>>2)&0x2000;//13//key_tmp |= (data<<2)&0x2000;//13
+	key_tmp |= (data3<<2)&0x4000;//14//key_tmp |= (data<<2)&0x4000;//14
 
 	key_tmp |= (data2<<4)&0x8000;//15
 	key_tmp |= (data2<<16)&0x10000;//16
