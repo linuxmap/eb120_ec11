@@ -697,7 +697,7 @@ u8 key2_zoom_press_check(void)
 
 
 
-#define ADC_CHN_M 4 //为2个通道 0,1
+#define ADC_CHN_M 2 //为2个通道 0,1
 #define ADC_CHN_N (ADC_CHN_M*16) //每通道采16次
 
 static vu16 Photoreg_ADC1_ConvertedValue[ADC_CHN_N];
@@ -710,7 +710,7 @@ static void Photoreg_ADC2_GPIO_INIT(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_0|GPIO_Pin_2|GPIO_Pin_3; //ADC1-light
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_0; //ADC1-light
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
@@ -778,7 +778,7 @@ static void Photoreg_ADC_Configuration(void)
 	ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;						//连续扫描
 	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None; 	//软件启动转换
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;					//数据右对齐
-	ADC_InitStructure.ADC_NbrOfChannel = 4; 								//1个通道
+	ADC_InitStructure.ADC_NbrOfChannel = 2; 								//1个通道
 	ADC_Init(ADC1, &ADC_InitStructure);
 
 	/* 配置通道1的采样速度,*/ 
@@ -786,9 +786,9 @@ static void Photoreg_ADC_Configuration(void)
 	/* 配置通道0的采样速度,*/ 
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 2, ADC_SampleTime_239Cycles5);
 	/* 配置通道0的采样速度,*/ 
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 3, ADC_SampleTime_239Cycles5);
-	/* 配置通道0的采样速度,*/ 
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 4, ADC_SampleTime_239Cycles5);
+//	ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 3, ADC_SampleTime_239Cycles5);
+//	/* 配置通道0的采样速度,*/ 
+//	ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 4, ADC_SampleTime_239Cycles5);
 
 
 	/* 允许ADC1的DMA模式 */
@@ -987,12 +987,12 @@ static u16  Get_joystick_Value(void)
 	
     for (i = 0;i < 16;i++)  
     {  
-        adc_value_tmp[i] = Photoreg_ADC1_ConvertedValue[i * 4];   
+        adc_value_tmp[i] = Photoreg_ADC1_ConvertedValue[i * ADC_CHN_M];   
     }  
 	
     for (i = 0;i < 16;i++)  
     {  
-        adc_value2_tmp[i] = Photoreg_ADC1_ConvertedValue[i * 4+1];   
+        adc_value2_tmp[i] = Photoreg_ADC1_ConvertedValue[i * ADC_CHN_M+1];   
     } 	
 
 
@@ -1783,7 +1783,7 @@ void rt_key_thread_entry(void* parameter)
 			//rt_thread_delay(50);
 		}
 
-		//k = Get_joystick_Value();
+		k = Get_joystick_Value();
 		
 		//osd_line_1to4_all_disp();
 
@@ -2558,7 +2558,7 @@ int rt_key_ctl_init(void)
     rt_thread_t init_thread;
 
 	key_pin_init();
-	//joystick_ADC_Init();
+	joystick_ADC_Init();
 	
 	rt_thread_delay(200);
 
