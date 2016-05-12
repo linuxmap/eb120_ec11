@@ -926,6 +926,20 @@ enum JOYSTICK_DIR_TYPE joystick_ud_dir_state = JOYSTICK_DIR_NONE;
 u8 joystick_lr_speed = 0,joystick_lr_speed_pre;
 u8 joystick_ud_speed = 0,joystick_ud_speed_pre;
 
+const u8 *joystick_msg[]=
+{
+{"     "},
+{"Left"},
+	{"Right"},
+	{"Up"},
+	{"Down"},
+	{"LU"},
+	{"LD"},
+	{"RU"},
+	{"RD"},
+	{"Left"},
+	{"Left"},
+};
 
 static void joystick_handle(void)
 {
@@ -972,7 +986,26 @@ static void joystick_handle(void)
 	{
 		prestate = 0;
 		pelcod_lrud_pre_packet_send(lrudcmd2,lrspeed, udspeed);
+
+		u8 tmp;
+
+		if(joystick_lr_dir_state!=JOYSTICK_DIR_NONE && joystick_ud_dir_state==JOYSTICK_DIR_NONE)
+		{
+			tmp = joystick_lr_dir_state;
+		}
+		else if(joystick_lr_dir_state==JOYSTICK_DIR_NONE && joystick_ud_dir_state!=JOYSTICK_DIR_NONE)
+		{
+			tmp = joystick_ud_dir_state;
+		}
+		else if(joystick_lr_dir_state!=JOYSTICK_DIR_NONE && joystick_ud_dir_state!=JOYSTICK_DIR_NONE)
+		{
+			tmp = joystick_lr_dir_state + joystick_ud_dir_state + joystick_lr_dir_state;
+		}
+		else
+			tmp = 0;
 		
+		strcat(osd_mid_str_buff,joystick_msg[tmp]);
+		osd_line1_disp(0);
 		rt_thread_delay(40);
 	}
 	

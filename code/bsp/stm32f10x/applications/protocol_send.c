@@ -240,5 +240,30 @@ void pelcod_stop_packet_send(void)
 }
 
 
+u8 rs485_get_data_from_slave(void)
+{
+	u8 cnt;
+	
+	u8 cmd_buff_private[7];
+	cmd_buff_private[0] = 0xff;
+	cmd_buff_private[1] = target_id;
+		cmd_buff_private[2] = 0;
+	cmd_buff_private[3] = 0x88;
+	cmd_buff_private[4] = 0;
+	cmd_buff_private[5] = 0;
+	
+	cmd_buff_private[6] = cmd_buff_private[1] + cmd_buff_private[2] + cmd_buff_private[3] + cmd_buff_private[4] + cmd_buff_private[5];
+	rs485_send_data(cmd_buff_private,7);
+	
+	cnt=3;
+	while(cnt--)
+	{
+		if(RT_EOK == rs485_recieve_check(0x88))
+			break;
+		//else
+		//	rs485_send_data(cmd_buff_private,7);
+	}
+
+}
 
 
